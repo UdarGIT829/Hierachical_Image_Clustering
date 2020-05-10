@@ -13,7 +13,7 @@ def RGBAtoRGB(pixel):
     return (red,green,blue)
 
 def write_to_file(pixel_dictionary):
-    out_file = "pixelOutput.csv"
+    out_file = "pixelOutput.txt"
     try: 
         w = open(out_file, "w")
         
@@ -21,7 +21,7 @@ def write_to_file(pixel_dictionary):
             w.write(key)
             w.write(":")
             w.write(val)
-            w.write("~")
+            w.write("\n")
     except IOError:
         print("I/O error")
 
