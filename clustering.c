@@ -83,7 +83,8 @@ int main(int argc, char *argv[])
             }
         }
         //at this point candidate is filled with the min weight pixels
-        printf("min found\n");
+        printf("Clustering: (%d,%d) & (%d,%d)\n", n1.coords.x,n1.coords.y,n2.coords.x,n2.coords.y);
+        printf("\tRGB1: %d,%d,%d; RGB2: %d,%d,%d\n",n1.RGB.R,n1.RGB.G,n1.RGB.B,n2.RGB.R,n2.RGB.G,n2.RGB.B);
         for(int i = 0; i<pixelList->len;i++)
         {
             test1 = g_array_index(pixelList,struct Pixel, i);
@@ -106,5 +107,6 @@ int main(int argc, char *argv[])
         g_array_append_val(pixelList,postClust);
     }
     printf("Clustering is now complete!");
+    free(table);
     return 0;
 }

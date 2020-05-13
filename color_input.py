@@ -9,7 +9,10 @@ def openFile(filename):
     return image, width, height
 
 def RGBAtoRGB(pixel):
-    red, green, blue, alpha = pixel
+    if len(pixel) == 4:
+        red, green, blue, alpha = pixel
+    else:
+        red, green, blue = pixel
     return (red,green,blue)
 
 def write_to_file(pixel_dictionary):
@@ -25,7 +28,7 @@ def write_to_file(pixel_dictionary):
     except IOError:
         print("I/O error")
 
-image, width, height = openFile('test.png')
+image, width, height = openFile('test2.png')
 pixel_dictionary = dict()
 for x in range(1,width):
     for y in range(1,height):
