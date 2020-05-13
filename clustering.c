@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
             }
         }
         //at this point candidate is filled with the min weight pixels
+        printf("min found\n");
         for(int i = 0; i<pixelList->len;i++)
         {
             test1 = g_array_index(pixelList,struct Pixel, i);
