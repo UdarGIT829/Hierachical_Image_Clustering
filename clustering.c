@@ -1,4 +1,4 @@
-//#include <omp.h>
+#include <omp.h>
 #include <stdio.h>
 #include <gmodule.h>
 #include "pixel.h"
@@ -11,13 +11,11 @@ int indexInTable(int rowNum, int colNum, GArray *table)
     return temp;
 }
 
-void tableInsert(int x, int y, GArray *table, int input)
+void tableInsert(int x, int y, int length, int *table, int input)
 {
-    printf("DBUG4a\n");
-    GArray *row = g_array_index(table, GArray*, x);
-    printf("DBUG4b\n");
-    g_array_insert_val(row, y, input);
-    printf("DBUG4c\n");
+    //GArray *row = g_array_index(table, GArray*, x);
+    table[x+(length* y)] = input;
+    //g_array_insert_val(row, y, input);
     return;
 }
 
@@ -34,8 +32,6 @@ int main(int argc, char *argv[])
     struct Pixel n1, n2, test1, test2, postClust;
     struct Cluster candidate;
     GArray *pixelList = g_array_new(FALSE,FALSE,sizeof(struct Pixel));
-    GArray *tableCells = g_array_new(FALSE,FALSE,sizeof(int));
-    GArray *table = g_array_new(FALSE,FALSE,sizeof(tableCells));
 
     while (fscanf(filePtr,"%d %*c %d %*c %*c %d %*s %d %*s  %d %*s",&xPos,&yPos,&redChan,&greenChan,&blueChan))
     {
@@ -46,6 +42,11 @@ int main(int argc, char *argv[])
             break;
         }
     }
+
+    int length = pixelList->len;
+    //GArray *tableCells = g_array_sized_new(FALSE,TRUE,sizeof(int),pixelList->len);
+    int * table = malloc(sizeof(int) * length * length);
+    //GArray *table = g_array_sized_new(FALSE,TRUE,sizeof(tableCells),pixelList->len);
 
     for(int i=0;i<pixelList->len;i++) // test content in pixelList TO BE REMOVED
     {
@@ -60,26 +61,23 @@ int main(int argc, char *argv[])
         minSeeker = 9999;
         for(int i=0;i<pixelList->len;i++)// fill table with weight values by comparing elements of pixelList
         {
-            //parallelize  inner loop? HARD
-            for(int j=0;j<pixelList->len;j++)
+            #pragma omp parallel shared(pixelList,candidate,n1,n2)
             {
-                printf("Iteration of i: %d, j: %d\n",i,j);
-                if(i != j)
+                #pragma omp for
+                for(int j=0;j<pixelList->len;j++)
                 {
-                    printf("DBUG1\n");
-                    n1 = g_array_index(pixelList,struct Pixel, i);
-                    printf("DBUG2\n");
-                    n2 = g_array_index(pixelList,struct Pixel, j);
-                    printf("DBUG3\n");
-                    cellValue = comparePixel(n1,n2);
-                    printf("DBUG4\n");
-                    tableInsert(i,j,table,cellValue);
-                    printf("DBUG5\n");
-                    if(minSeeker > cellValue)
+                    if(i != j)
                     {
-                        candidate.p1 = n1;
-                        candidate.p2 = n2;
-                        minSeeker = cellValue;
+                        n1 = g_array_index(pixelList,struct Pixel, i);
+                        n2 = g_array_index(pixelList,struct Pixel, j);
+                        cellValue = comparePixel(n1,n2);
+                        tableInsert(i,j,length,table,cellValue);
+                        if(minSeeker > cellValue)
+                        {
+                            candidate.p1 = n1;
+                            candidate.p2 = n2;
+                            minSeeker = cellValue;
+                        }
                     }
                 }
             }
@@ -103,10 +101,9 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-        // so remove n1 and n2 from pixelList DONE
         postClust = clusterToPixel(candidate);
         g_array_append_val(pixelList,postClust);
-        //  do clusterToPixel and insert into pixelList DONE
     }
+    printf("Clustering is now complete!");
     return 0;
 }
